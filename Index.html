@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roblox Lua 代码反混淆工具</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: black;
+            color: white;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 10px;
+            border: 1px solid grey;
+            padding: 5px;
+            resize: vertical;
+            background-color: dimgray;
+            color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: limegreen;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: green;
+        }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 128, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease, top 0.5s ease;
+            z-index: 1000;
+        }
+
+        #notification.show {
+            opacity: 1;
+            top: 50px;
+        }
+
+        #downloadLink {
+            display: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleAnimation 1s linear forwards;
+        }
+
+        @keyframes particleAnimation {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(var(--random-x) * 1px), calc(var(--random-y) * 1px));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Roblox Lua 代码反混淆工具</h1>
+    <textarea id="obfuscatedCode" placeholder="在此粘贴混淆的 Roblox Lua 代码"></textarea>
+    <button id="deobfuscateButton">Deobf</button>
+    <a id="downloadLink" style="display: none;" download="deobfuscated.lua"></a>
+    <div id="notification">反混淆完成！</div>
+
+    <script>
+        const deobfuscateButton = document.getElementById('deobfuscateButton');
+        const notification = document.getElementById('notification');
+
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.setProperty('--random-x', Math.random() * 200 - 100);
+            particle.style.setProperty('--random-y', Math.random() * 200 - 100);
+            document.body.appendChild(particle);
+
+            particle.addEventListener('animationend', () => {
+                particle.remove();
+            });
+        }
+
+        deobfuscateButton.addEventListener('click', function() {
+            const obfuscatedCode = document.getElementById('obfuscatedCode').value;
+            deobfuscateButton.textContent = "Deobf (反混淆中...)";
+            deobfuscateButton.disabled = true;
+
+            const apiUrl = 'YOUR_BACKEND_API_URL/api/deobfuscate';
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code: obfuscatedCode })
+            })
+            .then(response => response.json())
+            .then(data => {
+                deobfuscateButton.textContent = "Deobf";
+                deobfuscateButton.disabled = false;
+
+                if (data.success) {
+                    const deobfuscatedCode = data.deobfuscatedCode;
+                    const downloadLink = document.getElementById('downloadLink');
+                    const blob = new Blob([deobfuscatedCode], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.download = 'deobfuscated.lua';
+                    downloadLink.style.display = 'block';
+                    downloadLink.click();
+                    downloadLink.style.display = 'none';
+                    URL.revokeObjectURL(url);
+                    showNotification();
+
+                    for (let i = 0; i < 50; i++) {
+                        createParticle(deobfuscateButton.offsetLeft + deobfuscateButton.offsetWidth / 2, deobfuscateButton.offsetTop + deobfuscateButton.offsetHeight / 2);
+                    }
+                } else {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(error => {
+                deobfuscateButton.textContent = "Deobf";
+                deobfuscateButton.disabled = false;
+                alert("Error: " + error.message);
+            });
+        });
+    </script>
+</body>
+  </html>
+  
